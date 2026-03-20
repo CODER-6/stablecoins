@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stablecoin Atlas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">On-chain stablecoin intelligence</p>
+          <h1>Stablecoin Atlas</h1>
+          <p class="hero-text">
+            基于 DefiLlama 的稳定币市值、跨链分布与收益率聚合看板。
+          </p>
+        </div>
+        <div class="hero-meta">
+          <div class="meta-card">
+            <span class="meta-label">数据源</span>
+            <strong>DefiLlama Stablecoins + Yields</strong>
+          </div>
+          <div class="meta-card">
+            <span class="meta-label">收益率口径</span>
+            <strong>稳定币池 APY，按池子 TVL 加权</strong>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="toolbar card">
+          <div class="toolbar-group">
+            <label for="stablecoin-select">单个稳定币</label>
+            <input
+              id="stablecoin-select"
+              list="stablecoin-options"
+              placeholder="输入符号，如 USDT / USDC / DAI"
+              autocomplete="off"
+            />
+            <datalist id="stablecoin-options"></datalist>
+          </div>
+          <div class="toolbar-group">
+            <label for="top-limit">展示数量</label>
+            <select id="top-limit">
+              <option value="8">Top 8</option>
+              <option value="12" selected>Top 12</option>
+              <option value="20">Top 20</option>
+            </select>
+          </div>
+          <div class="toolbar-group">
+            <label for="apy-match-mode">APY 匹配口径</label>
+            <select id="apy-match-mode">
+              <option value="strict" selected>严格匹配</option>
+              <option value="expanded">扩展匹配</option>
+            </select>
+          </div>
+          <div class="toolbar-group">
+            <label for="distribution-mode">单币分布口径</label>
+            <select id="distribution-mode">
+              <option value="total" selected>总流通</option>
+              <option value="native">原生净流通</option>
+              <option value="bridged">桥接流出</option>
+            </select>
+          </div>
+          <div class="toolbar-group toolbar-action">
+            <button id="refresh-btn" type="button">刷新数据</button>
+          </div>
+        </section>
+
+        <section id="status" class="status"></section>
+
+        <section class="summary-grid">
+          <article class="summary-card card">
+            <span class="summary-label">稳定币总市值</span>
+            <strong id="total-market-cap">-</strong>
+          </article>
+          <article class="summary-card card">
+            <span class="summary-label">覆盖稳定币</span>
+            <strong id="stablecoin-count">-</strong>
+          </article>
+          <article class="summary-card card">
+            <span class="summary-label">覆盖链</span>
+            <strong id="chain-count">-</strong>
+          </article>
+          <article class="summary-card card">
+            <span class="summary-label">全市场加权 APY</span>
+            <strong id="global-apy">-</strong>
+          </article>
+        </section>
+
+        <section class="showcase-grid">
+          <article class="chart-panel chart-shell">
+            <div class="chart-topbar">
+              <div class="chart-titles">
+                <p class="panel-kicker">Advanced Chart</p>
+                <h2>
+                  TVL + APY
+                  <button
+                    class="info-btn"
+                    type="button"
+                    aria-label="查看 TVL + APY 图表说明"
+                    data-info-target="combo-info"
+                  >?</button>
+                </h2>
+              </div>
+              <div class="chart-actions">
+                <button class="ghost-btn" id="combo-export-csv" type="button">.csv</button>
+                <button class="ghost-btn active" id="combo-export-png" type="button">.png</button>
+              </div>
+            </div>
+            <div class="info-popover" id="combo-info" hidden>
+              <strong>数据来源</strong>
+              <p>TVL 和 APY 历史来自 DefiLlama `yields` 与 `chart/{pool}` 接口。</p>
+              <strong>计算方式</strong>
+              <p>先按当前稳定币匹配主流收益池，再对每个时间点按池子 `tvlUsd` 加权平均 APY。</p>
+              <p>公式：`sum(apy_i * tvl_i) / sum(tvl_i)`，TVL 则为匹配池的总和。</p>
+            </div>
+            <div id="combo-chart" class="pro-chart"></div>
+          </article>
+
+          <article class="chart-panel chart-shell">
+            <div class="chart-topbar">
+              <div class="chart-tabs" role="tablist" aria-label="dominance modes">
+                <button class="tab-btn" id="stack-mode-dominance" type="button">Dominance</button>
+                <button class="tab-btn" id="stack-mode-area" type="button">Area</button>
+              </div>
+              <div class="chart-title-inline">
+                <button
+                  class="info-btn"
+                  type="button"
+                  aria-label="查看链分布图表说明"
+                  data-info-target="stack-info"
+                >?</button>
+              </div>
+              <div class="chart-actions">
+                <button class="ghost-btn" id="stack-export-csv" type="button">.csv</button>
+                <button class="ghost-btn active" id="stack-export-png" type="button">.png</button>
+              </div>
+            </div>
+            <div class="info-popover" id="stack-info" hidden>
+              <strong>数据来源</strong>
+              <p>链分布历史来自 DefiLlama `stablecoin/{id}` 的 `chainBalances`。</p>
+              <strong>计算方式</strong>
+              <p>`Area` 显示各链绝对规模；`Dominance` 显示某日各链规模占当日总量的比例。</p>
+              <p>若切到原生净流通或桥接流出，则分别基于 `circulating - bridgedTo` 与 `bridgedTo` 聚合。</p>
+            </div>
+            <div id="stack-chart" class="pro-chart"></div>
+          </article>
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="panel card">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Distribution</p>
+                <h2>稳定币市值分布</h2>
+              </div>
+              <span id="market-share-caption" class="panel-caption"></span>
+            </div>
+            <div id="market-share-list" class="bar-list"></div>
+          </article>
+
+          <article class="panel card">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Yield</p>
+                <h2>各链稳定币加权 APY</h2>
+              </div>
+              <span class="panel-caption">权重：稳定币池 TVL</span>
+            </div>
+            <div id="chain-apy-list" class="bar-list"></div>
+          </article>
+        </section>
+
+        <section class="detail-grid">
+          <article class="panel card">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Trend</p>
+                <h2>稳定币总市值趋势</h2>
+              </div>
+              <span class="panel-caption">DefiLlama 全市场历史</span>
+            </div>
+            <div id="global-trend-chart" class="chart-box"></div>
+          </article>
+
+          <article class="panel card">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Trend</p>
+                <h2 id="selected-trend-title">单币趋势</h2>
+              </div>
+              <span id="selected-trend-caption" class="panel-caption"></span>
+            </div>
+            <div id="selected-trend-chart" class="chart-box"></div>
+          </article>
+        </section>
+
+        <section class="detail-grid">
+          <article class="panel card">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Selected Stablecoin</p>
+                <h2 id="selected-title">单个稳定币跨链分布</h2>
+              </div>
+              <span id="selected-caption" class="panel-caption"></span>
+            </div>
+            <div id="selected-chain-list" class="bar-list"></div>
+          </article>
+
+          <article class="panel card">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Selected Stablecoin</p>
+                <h2>单币在各链的加权 APY</h2>
+              </div>
+              <span id="selected-apy-caption" class="panel-caption"></span>
+            </div>
+            <div id="selected-apy-list" class="bar-list"></div>
+          </article>
+        </section>
+
+        <section class="detail-grid">
+          <article class="panel card">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Protocol Mix</p>
+                <h2 id="protocol-distribution-title">协议分布</h2>
+              </div>
+              <span id="protocol-distribution-caption" class="panel-caption"></span>
+            </div>
+            <div id="protocol-distribution-list" class="bar-list"></div>
+          </article>
+
+          <article class="panel card notes-panel">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Interpretation</p>
+                <h2>如何理解这张图</h2>
+              </div>
+            </div>
+            <ul class="notes-list">
+              <li>这张图统计的是当前稳定币在 DefiLlama 已追踪收益/借贷池中的协议分布，不是总流通量分布。</li>
+              <li>协议分布按池子的 `tvlUsd` 聚合，适合回答“资金主要在哪些协议里赚收益”。</li>
+              <li>如果某稳定币大部分只是停留在钱包、交易所或支付场景中，这张图里的协议总量会远小于它的总流通量。</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="table-grid">
+          <article class="panel card">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Coverage</p>
+                <h2>收益率样本池</h2>
+              </div>
+              <span class="panel-caption">仅统计 `stablecoin=true` 的池子</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>链</th>
+                    <th>项目</th>
+                    <th>符号</th>
+                    <th>APY</th>
+                    <th>TVL</th>
+                  </tr>
+                </thead>
+                <tbody id="pool-table-body"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel card notes-panel">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Methodology</p>
+                <h2>口径说明</h2>
+              </div>
+            </div>
+            <ul class="notes-list">
+              <li>市值口径使用 DefiLlama 稳定币接口中的 `circulating.peggedUSD`。</li>
+              <li>单币跨链分布支持三种口径：总流通、原生净流通、桥接流出；其中后两项基于 `stablecoin/{id}` 的 `bridgedTo` 聚合。</li>
+              <li>各链 APY 使用 DefiLlama Yields 中 `stablecoin=true` 的池子，按 `tvlUsd` 加权。</li>
+              <li>APY 严格匹配只接受精确符号；扩展匹配会纳入 `sUSDE`、`wUSDT`、`.e` 等常见包装或桥接别名。</li>
+              <li>如果某链或某币缺少收益率样本，会显示为无覆盖而不是 0%。</li>
+            </ul>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
