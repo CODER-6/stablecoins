@@ -35,47 +35,6 @@
       </header>
 
       <main>
-        <section class="toolbar card">
-          <div class="toolbar-group">
-            <label for="stablecoin-select">单个稳定币</label>
-            <input
-              id="stablecoin-select"
-              list="stablecoin-options"
-              placeholder="输入符号，如 USDT / USDC / DAI"
-              autocomplete="off"
-            />
-            <datalist id="stablecoin-options"></datalist>
-          </div>
-          <div class="toolbar-group">
-            <label for="top-limit">展示数量</label>
-            <select id="top-limit">
-              <option value="8">Top 8</option>
-              <option value="12" selected>Top 12</option>
-              <option value="20">Top 20</option>
-            </select>
-          </div>
-          <div class="toolbar-group">
-            <label for="apy-match-mode">APY 匹配口径</label>
-            <select id="apy-match-mode">
-              <option value="strict" selected>严格匹配</option>
-              <option value="expanded">扩展匹配</option>
-            </select>
-          </div>
-          <div class="toolbar-group">
-            <label for="distribution-mode">单币分布口径</label>
-            <select id="distribution-mode">
-              <option value="total" selected>总流通</option>
-              <option value="native">原生净流通</option>
-              <option value="bridged">桥接流出</option>
-            </select>
-          </div>
-          <div class="toolbar-group toolbar-action">
-            <button id="refresh-btn" type="button">刷新数据</button>
-          </div>
-        </section>
-
-        <section id="status" class="status"></section>
-
         <section class="summary-grid">
           <article class="summary-card card">
             <span class="summary-label">稳定币总市值</span>
@@ -154,6 +113,47 @@
             <div id="stack-chart" class="pro-chart"></div>
           </article>
         </section>
+
+        <section class="toolbar card">
+          <div class="toolbar-group">
+            <label for="stablecoin-select">单个稳定币</label>
+            <input
+              id="stablecoin-select"
+              list="stablecoin-options"
+              placeholder="输入符号，如 USDT / USDC / DAI"
+              autocomplete="off"
+            />
+            <datalist id="stablecoin-options"></datalist>
+          </div>
+          <div class="toolbar-group">
+            <label for="top-limit">展示数量</label>
+            <select id="top-limit">
+              <option value="8">Top 8</option>
+              <option value="12" selected>Top 12</option>
+              <option value="20">Top 20</option>
+            </select>
+          </div>
+          <div class="toolbar-group">
+            <label for="apy-match-mode">APY 匹配口径</label>
+            <select id="apy-match-mode">
+              <option value="strict" selected>严格匹配</option>
+              <option value="expanded">扩展匹配</option>
+            </select>
+          </div>
+          <div class="toolbar-group">
+            <label for="distribution-mode">单币分布口径</label>
+            <select id="distribution-mode">
+              <option value="total" selected>总流通</option>
+              <option value="native">原生净流通</option>
+              <option value="bridged">桥接流出</option>
+            </select>
+          </div>
+          <div class="toolbar-group toolbar-action">
+            <button id="refresh-btn" type="button">刷新数据</button>
+          </div>
+        </section>
+
+        <section id="status" class="status"></section>
 
         <section class="dashboard-grid">
           <article class="panel card">
