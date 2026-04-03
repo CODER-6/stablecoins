@@ -1,5 +1,8 @@
-const STABLECOINS_URL = "https://stablecoins.llama.fi/stablecoins";
-const YIELDS_URL = "https://yields.llama.fi/pools";
+const STABLECOINS_API_BASE = "/api/stablecoins";
+const YIELDS_API_BASE = "/api/yields";
+const STABLECOINS_URL = `${STABLECOINS_API_BASE}/stablecoins`;
+const YIELDS_URL = `${YIELDS_API_BASE}/pools`;
+const GLOBAL_HISTORY_URL = `${STABLECOINS_API_BASE}/stablecoincharts/all`;
 
 const state = {
   stablecoins: [],
@@ -128,7 +131,7 @@ async function loadDashboard() {
     const [stablecoinResponse, yieldsResponse, globalHistoryResponse] = await Promise.all([
       fetchJson(STABLECOINS_URL),
       fetchJson(YIELDS_URL),
-      fetchJson("https://stablecoins.llama.fi/stablecoincharts/all"),
+      fetchJson(GLOBAL_HISTORY_URL),
     ]);
 
     const processed = processDataset(
@@ -1030,7 +1033,7 @@ async function ensureSelectedHistory() {
     return;
   }
 
-  const detail = await fetchJson(`https://stablecoins.llama.fi/stablecoin/${selectedCoin.id}`);
+  const detail = await fetchJson(`${STABLECOINS_API_BASE}/stablecoin/${selectedCoin.id}`);
   state.historyCache.set(selectedCoin.id, processStablecoinHistory(detail));
 }
 
@@ -1047,7 +1050,7 @@ async function ensureSelectedYieldHistory() {
         return;
       }
 
-      const request = fetchJson(`https://yields.llama.fi/chart/${pool.pool}`)
+      const request = fetchJson(`${YIELDS_API_BASE}/chart/${pool.pool}`)
         .then((response) => response.data ?? [])
         .catch(() => []);
       state.poolChartCache.set(pool.pool, request);

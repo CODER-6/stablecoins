@@ -12,12 +12,16 @@
 
 - `public/`
   Cloudflare Pages 的发布目录
+- `public/_routes.json`
+  只让 `/api/*` 走 Pages Functions，静态资源继续直接托管
 - `public/index.html`
   页面入口
 - `public/app.js`
   数据拉取、聚合与图表逻辑
 - `public/styles.css`
   样式
+- `functions/api/[[path]].js`
+  DefiLlama 代理层，用来规避浏览器直连 `stablecoins.llama.fi` 的跨域限制
 - `wrangler.toml`
   Cloudflare Pages 配置
 
@@ -32,10 +36,12 @@
 ## 本地运行
 
 ```bash
-python3 -m http.server 8000 --directory public
+npx wrangler pages dev public
 ```
 
-然后打开 `http://localhost:8000`。
+然后打开 Wrangler 输出的本地地址，默认一般是 `http://localhost:8788`。
+
+之所以不再用 `python3 -m http.server`，是因为现在数据请求会先经过 `/api/*` 的 Pages Functions 代理。
 
 ## Cloudflare Pages 最短部署步骤
 
