@@ -3,6 +3,7 @@ const YIELDS_API_BASE = "/api/yields";
 const STABLECOINS_URL = `${STABLECOINS_API_BASE}/stablecoins`;
 const YIELDS_URL = `${YIELDS_API_BASE}/pools`;
 const GLOBAL_HISTORY_URL = `${STABLECOINS_API_BASE}/stablecoincharts/all`;
+const EXCLUDED_YIELD_PROTOCOL_RULES = [{ chain: "berachain", project: "bex" }];
 
 const state = {
   stablecoins: [],
@@ -208,6 +209,9 @@ function processDataset(peggedAssets, pools) {
     if (!pool.stablecoin || !Number.isFinite(pool.apy) || !Number.isFinite(pool.tvlUsd) || pool.tvlUsd <= 0) {
       continue;
     }
+    if (shouldExcludeYieldPool(pool)) {
+      continue;
+    }
 
     const normalizedChain = pool.chain || "Unknown";
     accumulateWeighted(chainApyMap, normalizedChain, pool.apy, pool.tvlUsd);
@@ -257,6 +261,23 @@ function processDataset(peggedAssets, pools) {
     apySamples: apySamples.sort((a, b) => b.tvlUsd - a.tvlUsd),
     defaultSymbol: stablecoins[0]?.symbol ?? "",
   };
+}
+
+function shouldExcludeYieldPool(pool) {
+  const normalizedChain = normalizeFilterValue(pool.chain);
+  const normalizedProject = normalizeFilterValue(pool.project);
+
+  return EXCLUDED_YIELD_PROTOCOL_RULES.some((rule) => {
+    const chainMatches = !rule.chain || normalizeFilterValue(rule.chain) === normalizedChain;
+    const projectMatches = !rule.project || normalizeFilterValue(rule.project) === normalizedProject;
+    return chainMatches && projectMatches;
+  });
+}
+
+function normalizeFilterValue(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase();
 }
 
 function processGlobalHistory(points) {

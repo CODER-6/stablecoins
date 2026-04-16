@@ -86,6 +86,7 @@ wrangler pages deploy public
 - 链 APY：DefiLlama Yields 中 `stablecoin=true` 的池子，按 `tvlUsd` 加权
 - 单币 APY：通过池子 `symbol` 与稳定币符号匹配后，再按 `tvlUsd` 加权
 - 协议分布：对匹配池子的 `project` 按 `tvlUsd` 聚合
+- 异常池过滤：当前会剔除 `Berachain / bex` 的收益池数据，后续可继续扩展黑名单规则
 
 其中 APY 聚合公式为：
 
